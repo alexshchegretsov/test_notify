@@ -1,0 +1,26 @@
+@startuml
+autonumber
+actor Client
+title someone likes your comment
+Client -> UGCAPI: send event to ugc service\n {"user_id": objectid,\n "comment_id": object_id,\n "event_time": timestamp}
+
+UGCAPI -> UGCMongo: save event
+UGCAPI <-- UGCMongo: accepted
+== prepare letter ==
+UGCAPI -> UGCMongo: get comment by commment_id
+UGCAPI <-- UGCMongo: return comment
+UGCAPI -> UGCMongo: get comment author_id by "comment_id"
+UGCAPI <-- UGCMongo: return author_id
+UGCAPI -> NotifyAPI: send author_id, comment, request_id to notify service\n POST /comment_like ?
+
+NotifyAPI -> NotifyPostgres: get message template
+NotifyAPI -> auth: get author email by author_id
+
+NotifyAPI -> NotifyAPI: create message
+NotifyAPI -> NotifyPostgres: create job
+
+== send letter ==
+NotifyAPI -> rabbit: send task to queue
+rabbit -> user: send message
+rabbit -> NotifyPostgres: job DONE
+@enduml

@@ -1,0 +1,15 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+title weekly mailing (abstract)
+
+process -> ugc: get stats
+process -> auth: get users data (email, name)
+process -> postgres: get template
+process -> postgres: create jobs
+process -> rabbit: send each job.id to queue
+rabbit -> client: process job - send email
+rabbit -> postgres: mark job DONE
+
+@enduml

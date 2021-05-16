@@ -1,0 +1,19 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+autonumber
+title admin panel
+admin -> postgres: create template
+admin -> postgres: create content
+admin -> postgres: create notification
+
+admin -> admin: choose notification
+admin -> admin_view: POST , do notify
+admin_view -> auth: get emails, usernames from identity provider
+admin_view -> admin_view: create message depending on notification type(named/unnamed)
+admin_view -> postgres: every message turn to Job(message, email, user_id) and save to DB with PENDING status
+admin_view -> rabbit: every Job.id pass to queue
+rabbit -> postgres: get job from postgres by job.id
+rabbit -> client: do process job - send email
+rabbit -> postgres: update job.status to DONE
+@enduml
